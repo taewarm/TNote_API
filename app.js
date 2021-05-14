@@ -22,8 +22,10 @@ app.listen(1750,function(){
     console.log("API START");
 });
 //일반 쿼리 사용법
-app.get('/tae/UserID=:id',function(req,res){
+//일기내용 확인
+app.get('/tae/UserID=:id&DlvDt=:dlvdt',function(req,res){
     var userID = req.params.id;
+    var dlvdt = req.params.dlvdt
     sql.connect(config, err => {
         // ... error checks
        if(err){
@@ -31,7 +33,7 @@ app.get('/tae/UserID=:id',function(req,res){
        }
          //일반쿼리 사용법
          new sql.Request()
-         .query("select * from Content where UserID="+userID, (err, result) => {
+         .query("select * from Content where UserID="+userID+"and DlvDt="+dlvdt, (err, result) => {
            // ... error checks
            if(err){
              console.log(err);
@@ -72,8 +74,8 @@ app.get('/tae/UserID=:id',function(req,res){
 //        } 
 //     }); 
 // });
-
-app.post('/content',function(req,res){
+//유저 정보 없으면 넣기
+app.post('/user',function(req,res){
     res.send("성공");
     console.log(req.body.userID);
     console.log(req.body.name);
@@ -98,4 +100,33 @@ app.post('/content',function(req,res){
          })
        } 
     }); 
+});
+//일기내용 데이터베이스 넣기
+app.post('/content',function(req,res){
+  res.send("성공");
+  console.log(req.body.userID);
+  console.log(req.body.DlvDt)
+  console.log(req.body.title);
+  console.log(req.body.content);  
+  sql.connect(config, err => {
+      // ... error checks
+     if(err){
+       console.log(err);
+     }else{
+        //일반쿼리 사용법
+       let request = new sql.Request()
+       .input('TuserID',sql.VarChar(10),req.body.userID)
+       .input('TDlvDt',sql.VarChar(20),req.body.DlvDt)
+       .input('TTitle',sql.NVarChar(30),req.body.title)
+       .input('TContents',sql.NVarChar(500),req.body.content)
+       .execute('SP_I_Contents',(err,result)=>{
+          // ... error checks
+          if(err){
+            console.log(err)
+          }else{
+          console.log(result.recordset)
+          }
+       })
+     } 
+  }); 
 });
